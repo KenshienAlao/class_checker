@@ -42,3 +42,6 @@ yarn-error.log*
 # Misc
 .DS_Store
 *.pem
+
+# Local documentation (excluded from version control)
+docs/
