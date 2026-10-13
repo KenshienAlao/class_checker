@@ -8,8 +8,10 @@ dependencies = [
     "openpyxl>=3.1.5",
     "psycopg[binary]>=3.3.6",
     "pwdlib[argon2]>=0.3.1",
+    "pydantic>=2.14.0",
     "pydantic-settings>=2.15.0",
     "pyjwt>=2.15.1",
+    "python-multipart>=0.0.32",
     "sqlalchemy>=2.1.4",
     "uvicorn[standard]>=0.54.0",
 ]
@@ -20,4 +22,24 @@ dev = [
     "mypy>=2.4.0",
     "pytest>=9.1.1",
     "ruff>=0.16.10",
+    "types-openpyxl>=3.1.5.20260827",
 ]
+
+[tool.ruff]
+target-version = "py313"
+line-length = 100
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B"]
+
+[tool.ruff.lint.per-file-ignores]
+# Alembic autogenerate produces these patterns on every revision.
+"migrations/versions/*.py" = ["E501", "UP007", "UP035", "I001"]
+
+[tool.mypy]
+python_version = "3.13"
+strict = true
+plugins = ["pydantic.mypy"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

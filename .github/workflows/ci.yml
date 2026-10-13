@@ -1,0 +1,86 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  backend:
+    name: Backend (lint, typecheck, test)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: class_checker
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: class_checker
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U class_checker -d class_checker"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      POSTGRES_HOST: localhost
+      POSTGRES_PORT: "5432"
+      POSTGRES_USER: class_checker
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: class_checker
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+      - name: Install uv
+        uses: astral-sh/setup-uv@v9
+        with:
+          version: "0.12.24"
+          python-version: "3.13"
+          enable-cache: true
+          working-directory: backend
+      - name: Sync dependencies
+        run: uv sync --locked
+      - name: Check formatting
+        run: .venv/bin/python -m ruff format --check .
+      - name: Lint
+        run: .venv/bin/python -m ruff check .
+      - name: Type check
+        run: .venv/bin/python -m mypy app tests
+      - name: Test
+        run: .venv/bin/python -m pytest
+
+  frontend:
+    name: Frontend (lint, typecheck, build)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: "12.9.1"
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: pnpm
+          cache-dependency-path: frontend/pnpm-lock.yaml
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+      - name: Check
+        run: pnpm check

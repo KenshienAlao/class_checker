@@ -45,3 +45,5 @@ yarn-error.log*
 
 # Local documentation (excluded from version control)
 docs/
+
+AGENTS.md

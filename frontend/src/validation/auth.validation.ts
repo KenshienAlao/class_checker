@@ -1,15 +1,10 @@
 import z from "zod";
 
 const AuthSchema = z.object({
-  firstName: z
+  name: z
     .string()
-    .min(1, "First name must be at least 1 character")
-    .max(32, "First name must be at most 32 characters")
-    .trim(),
-  lastName: z
-    .string()
-    .min(1, "Last name must be at least 1 character")
-    .max(32, "Last name must be at most 32 characters")
+    .min(1, "Name is required")
+    .max(64, "Name must be at most 64 characters")
     .trim(),
   email: z
     .email("Email must be valid")
@@ -29,10 +24,9 @@ const AuthSchema = z.object({
       "Password must contain at least one special character",
     ),
   confirm: z.string().min(1, "Password confirmation is required"),
-  terms: z.boolean().refine((v) => v, "You must agree to the terms"),
 });
 
-export const RegisterSchema = AuthSchema.refine(
+export const SignupSchema = AuthSchema.refine(
   (data) => data.password === data.confirm,
   {
     message: "Passwords do not match",
@@ -40,14 +34,12 @@ export const RegisterSchema = AuthSchema.refine(
   },
 );
 
-export const LoginSchema = AuthSchema.omit({
-  firstName: true,
-  lastName: true,
+export const SigninSchema = AuthSchema.omit({
+  name: true,
   confirm: true,
-  terms: true,
 }).extend({
   password: z.string().min(1, "Password is required"),
 });
 
-export type RegisterValidated = z.infer<typeof RegisterSchema>;
-export type LoginValidated = z.infer<typeof LoginSchema>;
+export type SignupValidated = z.infer<typeof SignupSchema>;
+export type SigninValidated = z.infer<typeof SigninSchema>;
